@@ -1,0 +1,13 @@
+2) 기초 API 익히기
+ (1) 종목 코드 가져오기
+  - 유가증권, 코스닥, 코넥스 시장에 상장된 종목은 모두 고윳값인 종목 코드를 갖고 있다.
+  - 증권사가 제공하는 API를 보면 일반적으로 종목 코드를 통해 특정 종목에 대한 시세를 조회하거나 매수/매도 주문을 넣을 수 있다.
+  - 유가증권시장에 상장된 종목의 종목 코드와 종목명을 파이썬의 딕셔너리 자료구조에 저장하는 프로그램을 작성한다.
+CpCodeMgr 클래스로 각종 코드 정보 및 코드 목록을 구하는데 사용한다.
+
+CpCodeMgr 클래스에서는 여러 메서드를 제공하는데 그중 GetStockListByMarket 메서드는 시장 구분에 따라 주식 종목을 리스트 형태로 제공한다.
+
+import win32com.client
+instCpCodeMgr = win32com.client.Dispatch("CpUtil.CpCodeMgr")
+
+instCpCodeMgr 변수가 생성된 객체를 바인딩하고 있으므로 앞으로 instCpCodeMgr를 통해 GetStock ListByMarket 메서드를 호출하면 됩니다. 이때 CetStockListByMarket 메서드의 인자로 1을 전달하면 유가증권시장의 종목을 파이썬 튜플 형태로 반환받을 수 있다.
