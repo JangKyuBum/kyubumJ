@@ -1,0 +1,26 @@
+4) API를 이용한 알고리즘 개발
+ (3) 거래량 분석을 통한 대박 주 포착
+  - 거래량 분석을 통한 대박 주 포착 알고리즘, 주요 요점은 거래량은 조작하기 어려운 데이터기 때문에 실제 세력들의 매집 패턴을 거래량을 통해 알 수 있다’는 것이다.
+1) 대량 거래(거래량이 1,000% 이상 급증) 종목
+2) 대량 거래 시점에서 PBR이 4보다 작아야 함
+
+CYBOS Plus에서 거래량을 구하려면 앞에서 설명한 StockChart 클래스를 이용하면 된다. 다음은 대신증권 종목의 최근 60일 치 거래량을 volumes라는 리스트에 저장하는 코드이다. 참고로 최근 거래일의 거래량이 리스트 앞쪽에 위치한다. 다음 코드를 실행한 후 출력 값을 다음 증권이나 네이버 증권에서 제공하는 대신증권 종목 거래량과 비교해볼 것.
+
+# SetInputValue
+instStockChart.SetInputValue(0, "A003540")
+instStockChart.SetInputValue(1, ord('2'))
+instStockChart.SetInputValue(4, 60)
+instStockChart.SetInputValue(5, 8)
+instStockChart.SetInputValue(6, ord('D'))
+instStockChart.SetInputValue(9, ord('1'))
+
+# BlockRequest
+instStockChart.BlockRequest()
+
+# GetData
+volumes = []
+numData = instStockChart.GetHeaderValue(3)
+for i in range(numData):
+    volume = instStockChart.GetDataValue(0, i)
+    volumes.append(volume)
+print(volumes)
