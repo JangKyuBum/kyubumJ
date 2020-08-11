@@ -1,0 +1,142 @@
+이번 장에서는 이베스트투자증권의 API 서비스인 xingAPI를 다룹니다. 이베스트투자증권은 이트레이드증권이 2014년 사명을 변경한 증권사입니다. 이베스트투자증권의 xingAPI는 타 증권사의 API에 비해 거래 수수료가 저렴하다는 장점 덕분에 국내의 많은 알고리즘 트레이더들이 사용하고 있습니다.
+
+이베스트투자증권의 xingAPI도 앞서 살펴본 대신증권의 CybosPlus와 비슷한 절차를 통해 개발 환경을 구축해야 합니다. 먼저 가까운 은행에 방문하거나 비대면 계좌개설을 통해 이베스트투자증권사 계좌를 개설합니다. 계좌 개설이 완료되면 이베스트투자증권 홈페이지를 통해 API 사용 등록을 합니다. API 사용 등록을 마친 후에는 PC에 xingAPI 패키지를 설치합니다.
+
+1) 계좌개설 및 xingAPI 패키지 설치
+2) 모의투자 가입하기
+2) 기초 API 익히기
+
+이베스트투자증권은 xingAPI 패키지를 더욱 쉽게 사용할 수 있도록 패키지 가이드를 제공합니다. 증권사에서 제공하는 API를 사용할 때는 이처럼 증권사에서 제공하는 도움말이나 가이드 파일을 참조하면 더욱 쉽게 프로그램을 개발할 수 있습니다.
+
+이베스트투자증권의 패키지 가이드를 참조하려면 이베스트투자증권 홈페이지에서 [고객센터] → [매매시스템] → [API] → [패키지가이드]로 이동합니다. 이베스트투자증권의 패키지 가이드는 DLL 버전개 발가이드, COM 버전 개발가이드, 데브센터 가이드, 가상거래소, XingACE 가이드로 구성돼 있습니다. 이 가운데 그림 11.10과 같이 [COM 버전 개발가이드]를 클릭합니다.
+
+1)로그인
+이베스트투자증권은 xingAPI 패키지를 더욱 쉽게 사용할 수 있도록 패키지 가이드를 제공합니다. 증권사에서 제공하는 API를 사용할 때는 이처럼 증권사에서 제공하는 도움말이나 가이드 파일을 참조하면 더욱 쉽게 프로그램을 개발할 수 있습니다.
+
+이베스트투자증권의 패키지 가이드를 참조하려면 이베스트투자증권 홈페이지에서 [고객센터] → [매매시스템] → [API] → [패키지가이드]로 이동합니다. 이베스트투자증권의 패키지 가이드는 DLL 버전개 발가이드, COM 버전 개발가이드, 데브센터 가이드, 가상거래소, XingACE 가이드로 구성돼 있습니다. 이 가운데 그림 11.10과 같이 [COM 버전 개발가이드]를 클릭합니다.
+
+
+XASession	서버연결, 로그인	XA_Session.dll
+XAQuery	조회TR	XA_DataSet.dll
+XAReal	실시간TR	XA_DataSet.dll
+xingAPI의 XASession 클래스는 10장에서 배운 대신증권의 기초 API 및 Request/Reply 타입의 기본 API와 달리 이벤트(Event) 방식으로 동작합니다. 참고로 대신증권의 Request/Reply 타입 API는 단순히 서버에 데이터를 요청한 후 데이터를 가져오는 메서드를 호출해서 데이터를 바로 얻어올 수 있었습니다.
+
+그러나 XASession 클래스는 서버에 데이터나 어떤 작업의 수행을 요청한 후 결괏값을 얻을 때 여러분이 직접 메서드를 호출해서 데이터를 얻는 구조가 아닙니다. 여러분이 요청한 데이터나 작업에 대해 서버가 작업을 수행한 후 완료됐을 때 다시 알려주는 방식입니다.
+
+두가지방식의차이점이잘이해되지않는분들을위해커피숍에서커피를주문하는방법을예로들어 설명해 보겠습니다.
+
+첫 번째 방식(Request/Reply)은 커피숍 계산대에서 커피를 주문하고 커피가 나올 때까지 그 자리에서 기다렸다가 커피를 받는 방식입니다. 두 번째 방식(Event)은 커피를 주문한 후 커피를 바로 받지 않고 진동벨만 받아 자리로 돌아온 후 커피가 준비됐을 때 진동벨을 통해 알림을 받는 방식입니다.
+
+첫 번째 방식은 커피가 준비되는 동안 여러분이 계속 계산대에서 기다려야 하므로 불편할 것입니다. 또한 커피숍 입장에서도 주문을 받은 후 커피를 줄 때까지 새로운 주문을 받지 못하므로 주문을 효과적으로 처리하기가 어렵습니다.
+
+이와 달리 두 번째 방식은 주문과 커피 준비를 따로 분리해서 처리할 수 있습니다. 고객 입장에서도 커피가 준비되는 동안 자리에 돌아가서 다른 일을 하다가 커피가 준비되면 즉시 알림을 받을 수 있으므로 편리합니다.
+
+앞서 XASession 클래스가 이벤트 방식으로 동작한다고 설명했습니다. 여기서 이벤트라는 것은 커피숍에서 커피가 준비됐을 때 진동벨이 울리는 동작과 같습니다. 커피숍은 커피가 준비되면 고객이 알 수 있도록 진동벨이 울리는 이벤트를 발생시키는 것입니다. xingAPI도 메서드 호출을 통해 어떤 작업을 요청했을 때 해당 작업이 완료되면 이벤트를 발생시켜 알려주는 것입니다.
+
+커피숍에서는 이벤트를 받기 위해 진동벨이라는 장비를 사용했습니다. xingAPI를 사용하는 프로그램에서는 어떻게 하면 서버가 알려주는 이벤트를 받을 수 있을까요? 이벤트 방식의 API는 분명 편리하지만 이벤트를 처리하는 코드를 추가로 작성해야 하므로 초보자에게는 어려울 수 있습니다.
+
+커피숍에서 진동벨을 사용했던 것처럼 먼저 서버로부터 전송되는 이벤트를 처리하기 위한 전용 클래스인 XASessionEventHandler를 작성해보겠습니다. 참고로 XASession을 사용할 때 서버로부터 발생하는 이벤트를 처리하는 클래스이므로 클래스 이름을 XASessionEventHandler라고 한 것입니다.
+
+class XASessionEventHandler:
+    login_state = 0
+
+    def OnLogin(self, code, msg):
+        if code == "0000":
+            print("로그인 성공")
+            XASessionEventHandler.login_state = 1
+        else:
+            print("로그인 실패")
+XASessionEventHandler 클래스는 로그인에 대한 결괏값을 받을 수 있는 OnLogin 메서드를 포함합니다. 여기서 OnLogin 메서드는 여러분이 구현한 메서드지만 여러분이 호출하는 메서드는 아닙니다. 이베스트투자증권의 서버가 로그인 결과를 여러분에게 통지할 때 이 메서드를 호출하는 것입니다. 보통 프로그래밍에서는 이 같은 형태의 함수나 메서드를 콜백(callback) 함수 또는 콜백 메서드라고 합니다.
+
+OnLogin 메서드는 이베스트투자증권 서버가 직접 호출하는 메서드이므로 메서드의 이름을 변경해서는 안 됩니다. 이름을 변경하면 서버가 여러분에게 이벤트 발생 여부를 알려줄 방법이 없습니다.
+
+OnLogin 메서드의 인자를 살펴보면 self 외에도 추가로 code와 msg라는 변수가 있음을 확인할 수 있습니다. 이는 그림 11.12와 같이 개발 가이드의 ‘로그인 결과 받기’ 부분을 참조해서 구현한 것입니다.
+
+그림 11.12 로그인 결과 받기 (xingAPI 개발 가이드)
+
+Login 이벤트가 발생할 때 szCode와 szMsg라는 값이 서버로부터 전달되기 때문에 파이썬 코드에서도 해당 값을 전달받기 위해 code와 msg라는 두 개의 인자를 추가했습니다. 특히 code라는 변수의 값으로 '0000'이라는 문자열 값이 들어오면 로그인이 성공한 것이고 그 밖의 값이 들어오면 로그인이 실패한 것이기 때문에 OnLogin 메서드를 이에 맞춰 구현했습니다.
+
+XASessionEventHandler 클래스에는 login_state라는 클래스 변수가 있습니다. 클래스에는 인스턴스 변수와 클래스 변수가 있다는 것을 다들 기억하시죠? login_state 클래스 변수는 서버에 로그인된 상태인지를 저장하는 데 사용됩니다. 초깃값으로 0을 가지고 있다가 로그인이 성공하면 해당 값을 1로 변경합니다.
+
+이벤트를 처리할 클래스를 구현했으니 XASession 클래스에 대한 인스턴스를 생성해보겠습니다. 이벤트 방식으로 동작하는 COM 클래스에 대한 인스턴스를 생성하기 위해서는 win32com.client 모듈의 Dispatch 함수가 아니라 DispatchWithEvents 함수를 사용하면 됩니다.
+
+DispatchWithEvents 함수의 첫 번째 인자로는 인스턴스를 생성하려는 클래스의 이름을 지정하면 됩니다. 표 11.1을 참조하면 XASession 클래스는 XA_Session.dll이라는 파일에 구현돼 있으므로 'XA_Session.XASession'을 입력했습니다.
+
+두 번째 인자로는 생성할 클래스에 대한 이벤트를 처리할 클래스의 이름을 지정하면 됩니다. XASessionEventHandler라는 이름으로 이벤트 처리용 클래스를 구현했으므로 XASeesionEventHandler라는 이름을 입력하면 됩니다.
+
+import win32com.client
+
+class XASessionEventHandler:
+    login_state = 0
+
+    def OnLogin(self, code, msg):
+        if code == "0000":
+            print("로그인 성공")
+            XASessionEventHandler.login_state = 1
+        else:
+            print("로그인 실패")
+
+instXASession = win32com.client.DispatchWithEvents("XA_Session.XASession", XASessionEventHandler)
+insXASession이라는 이름의 객체가 생성됐으므로 해당 객체를 사용해 서버에 연결하거나 로그인을 위한 메서드를 호출하면 됩니다. 개발 가이드를 참조하면 서버 연결에는 ConnectServer라는 메서드를 사용하고, 로그인에는 Login이라는 메서드를 사용한다는 사실을 알 수 있습니다.
+
+접속할 서버의 기본 주소는 'hts.ebestsec.co.kr'인데 모의 투자인 경우에는 'demo.ebestsec.co.kr'을 사용하면 됩니다. Login 메서드에는 사용자 아이디, 사용자 비밀번호, 공인인증서 비밀번호를 순서대로 입력해야 합니다. 계정 정보를 효과적으로 관리하기 위해 id, passwd, certificate_passwd라는 변수를 사용해 봅시다. 해당 변수에 여러분의 로그인 정보를 입력해두면 Login 메서드에서는 이러한 변수를 사용해 로그인을 진행합니다.
+
+id = "id"
+passwd = "passwd"
+cert_passwd = "cert"
+
+instXASession.ConnectServer("hts.ebestsec.co.kr", 20001)
+instXASession.Login(id, passwd, cert_passwd, 0, 0)
+PyCharm과 같은 IDE를 통해 지금까지 설명한 코드를 실행해 보면 다음과 같이 로그인 관련 메시지가 출력되지 않음을 확인할 수 있습니다. XASessionEventHandler 클래스에 OnLogin 메서드를 구현해 로그인이 성공하거나 실패할 때 메시지를 출력하게 했지만 어떤 메시지도 출력되지 않은 것입니다.
+
+C:\Anaconda3\python.exe E:/GitHub/book/ch11/02.py
+
+Process finished with exit code 0
+앞서 작성한 코드에서 어떤 부분이 잘못된 것일까요? 정답은 이벤트 방식으로 작성된 클래스에서 이벤트를 받기 위해서는 이벤트가 발생할 때까지 대기해야 한다는 것입니다.
+
+커피숍의 예에서 커피를 주문한 후 진동벨을 가지고 자리에서 일정 시간 동안 기다리고 있어야 진동벨이 울리는 것을 확인할 수 있는 것과 같습니다. 그러나 조금 전에 작성한 코드에는 이벤트가 발생할 때까지 대기하는 코드가 없었습니다.
+
+그림 11.13은 지금까지 작성한 파이썬 코드의 실행 흐름입니다. 파이썬 코드는 소스코드의 첫 번째 줄부터 소스코드가 끝날 때까지 순서대로 실행됩니다. 물론 함수, 메서드, 분기문, 조건문에 따라 코드의 실행 순서가 조금씩 바뀌기는 하지만 큰 흐름은 위에서 아래로 실행됩니다. 작성된 코드에서 ConnectServer나 Login 메서드를 호출하는 부분은 소스코드의 끝부분에 위치하기 때문에 파이썬 인터프리터는 해당 메서드를 호출하고 더는 실행할 코드가 없으므로 프로그램을 종료합니다. 따라서 증권사 서버가 콜백하고자 하는 시점에 여러분의 프로그램은 실행 상태에 있지 않았기 때문에 제대로 동작하지 않았던 것입니다.
+
+그림 11.13 파이썬 코드의 실행 흐름
+
+여러분이 작성한 프로그램이 증권사 서버가 콜백 함수를 호출할 때까지 종료되지 않고 대기하게 하는 방법은 여러 가지가 있지만 가장 쉬운 방법은 pythoncom 모듈의 PumpWatingMessages라는 함수를 무한 루프 내에서 호출하는 것입니다.
+
+파이썬에서 무한 루프는 while 문을 통해 구현할 수 있었지요? 그러나 무한 루프를 만들게 되면 무한 루프 부분에서 여러분이 작성한 프로그램이 계속해서 동작하기 때문에 단순히 'while 1:'과 같은 형태로 무한 루프를 만들면 안 됩니다. 로그인이 정상적으로 이뤄졌다면 무한 루프를 벗어나도록 코드를 구현해야 로그인 후에 추가 작업을 위한 코드를 실행할 수 있습니다.
+
+예제 11.1은 지금까지 설명한 코드에 pythoncom 모듈의 PumpWaitingMessages 함수를 이용해 무한 루프를 구현한 것입니다. while 문에서는 XASessionEvents 클래스의 클래스 변수인 login_state 값을 확인함으로써 해당 값이 1로 변경되는 시점에 무한 루프를 빠져나오도록 구현돼 있습니다.
+
+import win32com.client
+import pythoncom
+
+class XASessionEventHandler:
+    login_state = 0
+
+    def OnLogin(self, code, msg):
+        if code == "0000":
+            print("로그인 성공")
+            XASessionEventHandler.login_state = 1
+        else:
+            print("로그인 실패")
+
+instXASession = win32com.client.DispatchWithEvents("XA_Session.XASession", XASessionEventHandler)
+
+id = "아이디"
+passwd = "비밀번호"
+cert_passwd = "공인인증서"
+
+instXASession.ConnectServer("hts.ebestsec.co.kr", 20001)
+instXASession.Login(id, passwd, cert_passwd, 0, 0)
+
+while XASessionEventHandler.login_state == 0:
+    pythoncom.PumpWaitingMessages()
+예제 11.1 xingAPI 로그인(소스코드: book/ch11/03.py)
+
+예제 11.1의 코드를 실행하면 다음과 같이 ‘로그인 성공’이라는 메시지가 정상적으로 출력되는 것을 확인할 수 있습니다. 참고로 예제 11.1의 코드에서 id, passwd, cert_passwd라는 변수에는 여러분의 로그인 아이디, 비밀번호, 공인인증서 비밀번호를 입력해야 합니다.
+
+C:\Anaconda3\python.exe E:/GitHub/book/ch11/03(ex01).py
+로그인 성공
+
+Process finished with exit code 0
+
+
