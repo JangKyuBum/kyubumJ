@@ -1,0 +1,110 @@
+4)차트 데이터 받아오기
+시스템 트레이딩에서는 많은 사람이 일봉 차트 데이터를 사용합니다. 왜냐하면 틱이나 분 단위로는 과거 데이터를 무료로 내려받기가 쉽지 않으며, 데이터 용량이 커서 개인적으로 해당 데이터를 관리하기도 쉽지 않기 때문입니다.
+
+이번 절에서는 xingAPI를 이용해 일봉 차트를 구성하는 주요 데이터인 일자, 시가, 고가, 저가, 종가 데이터를 가져와 보겠습니다.
+
+먼저 그림 11.28과 같이 주식 차트와 관련된 TR 코드가 몇 개 존재하는 것을 DevCenter에서 확인할 수 있습니다. 일 단위의 데이터를 가져오려면 t8413 TR 코드를 사용하면 됩니다.
+
+t8413 TR 코드를 사용하는 방법도 앞서 설명해 드린 것과 같습니다. 다만 그림 11.29를 참조하면 t8413InBlock 블록에 다수의 필드명이 존재하는 것을 확인할 수 있습니다. 따라서 SetFieldData 메서드를 이용해 입력 데이터를 설정할 때 각 필드 단위로 데이터를 설정해야 합니다.
+
+
+예를 들어, 이베스트투자증권 종목에 대해 2016-01-11~2016-01-22 기간의 일봉 데이터를 받아오려면 다음과 같이 코드를 작성하면 됩니다.
+
+instXAQueryT8413.SetFieldData("t8413InBlock", "shcode", 0, "078020")
+instXAQueryT8413.SetFieldData("t8413InBlock", "gubun", 0, "2")
+instXAQueryT8413.SetFieldData("t8413InBlock", "sdate", 0, "20160111")
+instXAQueryT8413.SetFieldData("t8413InBlock", "edate", 0, "20160122")
+instXAQueryT8413.SetFieldData("t8413InBlock", "comp_yn", 0, "N")
+그림 11.29를 참조하면 t8413 TR 코드에는 t8413OutBlock과 t8413OutBlock1이라는 두 가지 종류의 출력 데이터 블록명이 존재하는 것을 확인할 수 있습니다. 이 가운데 t8413OutBlock1은 Occurs 속성을 가진 반복 데이터입니다. 따라서 먼저 데이터의 총 개수를 구한 후 각 인덱스에 해당하는 데이터 를 가져오면 됩니다.
+
+count = instXAQueryT8413.GetBlockCount("t8413OutBlock1")
+예를 들어, 2016-01-11~2016-01-22 기간에는 총 10일의 주식 거래일이 존재하므로 데이터의 총 개수는 10개가 됩니다. 따라서 0~9까지의 각 인덱스는 특정 거래일을 의미하며, 해당 거래일의 날짜, 시가, 고가, 저가, 종가를 다음과 같은 코드로 구할 수 있습니다.
+
+for i in range(count):
+    date = instXAQueryT8413.GetFieldData("t8413OutBlock1", "date", i)
+    open = instXAQueryT8413.GetFieldData("t8413OutBlock1", "open", i)
+    high = instXAQueryT8413.GetFieldData("t8413OutBlock1", "high", i)
+    low = instXAQueryT8413.GetFieldData("t8413OutBlock1", "low", i)
+    close = instXAQueryT8413.GetFieldData("t8413OutBlock1", "close", i)
+    print(date, open, high, low, close)
+예제 11.5는 t8413 TR 코드를 이용해 일봉 데이터를 구하는 전체 코드입니다.
+
+import win32com.client
+import pythoncom
+
+class XASessionEventHandler:
+    login_state = 0
+
+    def OnLogin(self, code, msg):
+        if code == "0000":
+            print("로그인 성공")
+            XASessionEventHandler.login_state = 1
+        else:
+            print("로그인 실패")
+
+class XAQueryEventHandlerT8413:
+    query_state = 0
+
+    def OnReceiveData(self, code):
+        XAQueryEventHandlerT8413.query_state = 1
+
+
+# ----------------------------------------------------------------------------
+# login
+# ----------------------------------------------------------------------------
+id = "id"
+passwd = "passwd"
+cert_passwd = "cert"
+
+instXASession = win32com.client.DispatchWithEvents("XA_Session.XASession", XASessionEventHandler)
+instXASession.ConnectServer("hts.ebestsec.co.kr", 20001)
+instXASession.Login(id, passwd, cert_passwd, 0, 0)
+
+while XASessionEventHandler.login_state == 0:
+    pythoncom.PumpWaitingMessages()
+
+
+# ----------------------------------------------------------------------------
+# T8413
+# ----------------------------------------------------------------------------
+instXAQueryT8413 = win32com.client.DispatchWithEvents("XA_DataSet.XAQuery", XAQueryEventHandlerT8413)
+instXAQueryT8413.ResFileName = "C:\\eBEST\\xingAPI\\Res\\t8413.res"
+
+instXAQueryT8413.SetFieldData("t8413InBlock", "shcode", 0, "078020")
+instXAQueryT8413.SetFieldData("t8413InBlock", "gubun", 0, "2")
+instXAQueryT8413.SetFieldData("t8413InBlock", "sdate", 0, "20160111")
+instXAQueryT8413.SetFieldData("t8413InBlock", "edate", 0, "20160122")
+instXAQueryT8413.SetFieldData("t8413InBlock", "comp_yn", 0, "N")
+
+instXAQueryT8413.Request(0)
+
+while XAQueryEventHandlerT8413.query_state == 0:
+    pythoncom.PumpWaitingMessages()
+
+count = instXAQueryT8413.GetBlockCount("t8413OutBlock1")
+for i in range(count):
+    date = instXAQueryT8413.GetFieldData("t8413OutBlock1", "date", i)
+    open = instXAQueryT8413.GetFieldData("t8413OutBlock1", "open", i)
+    high = instXAQueryT8413.GetFieldData("t8413OutBlock1", "high", i)
+    low = instXAQueryT8413.GetFieldData("t8413OutBlock1", "low", i)
+    close = instXAQueryT8413.GetFieldData("t8413OutBlock1", "close", i)
+    print(date, open, high, low, close)
+예제 11.5 t8413 TR 코드를 이용한 일봉 데이터 얻기(소스코드: book/ch11/09.py)
+
+예제 11.5에서 사용자 계정 정보를 설정하는 코드 부분을 수정한 후 실행하면 다음과 같이 요청한 거래 기간의 일봉 데이터를 가져오는 것을 확인할 수 있습니다.
+
+C:\Anaconda3\python.exe F:/GitHub/book/ch11/09(ex05).py
+로그인 성공
+20160111 9810 9860 9700 9800
+20160112 9670 9990 9670 9750
+20160113 9790 9840 9790 9800
+20160114 9560 9810 9560 9690
+20160115 9820 9820 9590 9590
+20160118 9590 9590 9450 9450
+20160119 9270 9320 9240 9240
+20160120 9570 9570 9020 9080
+20160121 9100 9260 9050 9050
+20160122 9020 9200 8880 9060
+
+Process finished with exit code 0
+다음 증권 홈페이지를 통해 같은 기간의 이베스트투자증권의 일봉 데이터 값을 살펴보면 xingAPI를 이용해 가져온 값과 같음을 확인할 수 있습니다.
